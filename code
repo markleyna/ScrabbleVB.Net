@@ -1,0 +1,261 @@
+Public Class Form1
+    Structure tile
+        Dim letter As String
+        Dim value As Integer
+    End Structure
+    Structure hand
+        Dim picBox As PictureBox
+        Dim theTile As tile
+    End Structure
+    Structure topTen
+        Dim initial As String
+        Dim score As Integer
+    End Structure
+    'Public Declarations
+    Public arrBag(100) As tile
+    Public arrHand(7) As hand
+    Public arrTopTen(11) As topTen
+    Public arrDict(58112) As String
+    Dim w As Integer
+    Dim buildWord As String
+    Dim runningTotal As Integer
+
+    Private Sub frmBlackjack_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim i As Integer = 0
+        Dim j As Integer = 0
+        Dim line As String
+        Dim temp As tile
+        Dim rNum As Integer
+
+        FileOpen(1, "F:\CP 2\net\Scrabble\TopTen.txt", OpenMode.Input)
+        For i = 1 To 10
+            line = Trim(LineInput(1))
+            arrTopTen(i).initial = Mid(line, 1, 2)
+            arrTopTen(i).score = Val(Mid(line, 4))
+        Next
+        For f = 1 To 10
+            lBoxTopTen.Items.Add(arrTopTen(f).initial + " " + Str(arrTopTen(f).score))
+        Next
+        FileClose(1)
+        w = 1
+        FileOpen(1, "F:\CP 2\net\Scrabble\scrabblevalues.txt", OpenMode.Input)
+        For i = 1 To 26
+            line = LineInput(1)
+            For j = 1 To Val(Trim(Mid(line, 5, 2)))
+                arrBag(w).letter = Mid(line, 1, 1)
+                arrBag(w).value = Val(Trim(Mid(line, 3, 2)))
+                w += 1
+            Next
+        Next
+        FileClose(1)
+        For i = 1 To 2
+            arrBag(w).letter = "blank"
+            arrBag(w).value = 0
+            w += 1
+        Next
+        w = 7
+        'Shuffle
+        Randomize()
+        For i = 1 To 100
+            rNum = Int(Rnd() * 100) + 1
+            temp = arrBag(i)
+            arrBag(i) = arrBag(rNum)
+            arrBag(rNum) = temp
+        Next
+        'Deal the player's hand
+        arrHand(1).picBox = picBox1
+        arrHand(2).picBox = picBox2
+        arrHand(3).picBox = picBox3
+        arrHand(4).picBox = picBox4
+        arrHand(5).picBox = picBox5
+        arrHand(6).picBox = picBox6
+        arrHand(7).picBox = picBox7
+        For i = 1 To 7
+            arrHand(i).picBox.Image = Image.FromFile("F:\CP 2\net\Scrabble\Scrabble Tiles\" & Trim(UCase(arrBag(i).letter)) & ".jpg")
+            arrHand(i).theTile = arrBag(i)
+        Next
+        lblScore.Text = 0
+
+        'input dictionary
+        FileOpen(1, "F:\CP 2\net\dictionary.txt", OpenMode.Input)
+        For i = 1 To 58112
+            arrDict(i) = UCase(LineInput(1))
+        Next
+        FileClose(1)
+    End Sub
+
+    Private Sub btnExit_Click(sender As Object, e As EventArgs) Handles btnExit.Click
+        Me.Close()
+    End Sub
+
+    Private Sub picBox1_Click(sender As Object, e As EventArgs) Handles picBox1.Click
+        Dim z As Integer = 1
+        clickedTile(z)
+    End Sub
+    Private Sub clickedTile(z As Integer)
+        If arrHand(z).theTile.letter = "blank" Then
+            arrHand(z).theTile.letter = UCase(Trim(InputBox("What letter do you want?", "Blank Tile")))
+            buildWord += arrHand(z).theTile.letter
+            arrHand(z).theTile.letter = "blank"
+        Else
+            buildWord += arrHand(z).theTile.letter
+        End If
+        runningTotal += arrHand(z).theTile.value
+        txtBuildWord.Text = buildWord
+        arrHand(z).picBox.Image = Image.FromFile("F:\CP 2\net\Scrabble\Scrabble Tiles\" & Trim(UCase(arrBag(w + 1).letter)) & ".jpg")
+        arrHand(z).theTile = arrBag(w + 1)
+        arrHand(z).picBox.Visible = False
+        w += 1
+    End Sub
+
+    Private Sub picBox2_Click(sender As Object, e As EventArgs) Handles picBox2.Click
+        Dim z As Integer = 2
+        clickedTile(z)
+    End Sub
+
+    Private Sub picBox3_Click(sender As Object, e As EventArgs) Handles picBox3.Click
+        Dim z As Integer = 3
+        clickedTile(z)
+    End Sub
+
+    Private Sub picBox4_Click(sender As Object, e As EventArgs) Handles picBox4.Click
+        Dim z As Integer = 4
+        clickedTile(z)
+    End Sub
+
+    Private Sub picBox5_Click(sender As Object, e As EventArgs) Handles picBox5.Click
+        Dim z As Integer = 5
+        clickedTile(z)
+    End Sub
+
+    Private Sub picBox6_Click(sender As Object, e As EventArgs) Handles picBox6.Click
+        Dim z As Integer = 6
+        clickedTile(z)
+    End Sub
+
+    Private Sub picBox7_Click(sender As Object, e As EventArgs) Handles picBox7.Click
+        Dim z As Integer = 7
+        clickedTile(z)
+    End Sub
+
+    Private Sub btnSubmit_Click(sender As Object, e As EventArgs) Handles btnSubmit.Click
+        Dim low As Long = 1
+        Dim high As Long = 58112
+        Dim mid As Long
+        Dim pos As Long = 0
+        Dim i As Integer
+        Do While low <= high
+            mid = Int((low + high) / 2)
+            If StrComp(buildWord, arrDict(mid)) = 1 Then
+                low = mid + 1
+            ElseIf StrComp(buildWord, arrDict(mid)) = -1 Then
+                high = mid - 1
+            Else
+                pos = mid
+                If Len(buildWord) = 4 Then
+                    runningTotal += arrHand(4).theTile.value
+                ElseIf Len(buildWord) = 5 Then
+                    runningTotal += arrHand(5).theTile.value * 2
+                ElseIf Len(buildWord) = 6 Then
+                    runningTotal = runningTotal * 2
+                ElseIf Len(buildWord) = 7 Then
+                    runningTotal = runningTotal * 3
+                End If
+                lBoxHand.Items.Add(buildWord + "   " + Str(runningTotal))
+                lblScore.Text = Str(Val(lblScore.Text) + runningTotal)
+                Exit Do
+            End If
+        Loop
+        If pos = 0 Then
+            MsgBox(buildWord + " isn't a word", vbOKOnly, " ")
+        End If
+        txtBuildWord.Text = " "
+        runningTotal = 0
+        buildWord = ""
+
+        For i = 1 To 7
+            arrHand(i).picBox.Visible = True
+        Next
+    End Sub
+
+    Private Sub btnSurrender_Click(sender As Object, e As EventArgs) Handles btnSurrender.Click
+        For i = 1 To 7
+            arrHand(i).picBox.Visible = False
+        Next
+        w = 7
+        btnSubmit.Enabled = False
+        btnNew.Enabled = True
+        btnSurrender.Enabled = False
+        inputTopTen()
+    End Sub
+
+    Private Sub btnNew_Click(sender As Object, e As EventArgs) Handles btnNew.Click
+        Dim i As Integer
+        Dim rNum As Integer
+        Dim temp As tile
+        btnSubmit.Enabled = True
+        btnNew.Enabled = False
+        btnSurrender.Enabled = True
+        lBoxHand.Items.Clear()
+        txtBuildWord.Text = ""
+        buildWord = ""
+        runningTotal = 0
+        lblScore.Text = ""
+        Randomize()
+        For i = 1 To 100
+            rNum = Int(Rnd() * 100) + 1
+            temp = arrBag(i)
+            arrBag(i) = arrBag(rNum)
+            arrBag(rNum) = temp
+        Next
+        'Deal the player's hand
+        arrHand(1).picBox = picBox1
+        arrHand(2).picBox = picBox2
+        arrHand(3).picBox = picBox3
+        arrHand(4).picBox = picBox4
+        arrHand(5).picBox = picBox5
+        arrHand(6).picBox = picBox6
+        arrHand(7).picBox = picBox7
+        For i = 1 To 7
+            arrHand(i).picBox.Image = Image.FromFile("F:\CP 2\net\Scrabble\Scrabble Tiles\" & Trim(UCase(arrBag(i).letter)) & ".jpg")
+            arrHand(i).theTile = arrBag(i)
+        Next
+        For i = 1 To 7
+            arrHand(i).picBox.Visible = True
+        Next
+    End Sub
+    Private Sub inputTopTen()
+        Dim f As Integer
+        Dim swap As Boolean
+        Dim b As Integer
+        Dim temp As topTen
+
+        If Val(lblScore.Text) > arrTopTen(10).score Then
+            arrTopTen(11).initial = Mid(Trim(InputBox("What are your initials?", "Top Ten")), 1, 2)
+            arrTopTen(11).score = Val(lblScore.Text)
+            lBoxTopTen.Items.Clear()
+            b = 10
+            Do
+                swap = False
+                For f = 1 To b
+                    If arrTopTen(f).score < arrTopTen(f + 1).score Then
+                        temp = arrTopTen(f)
+                        arrTopTen(f) = arrTopTen(f + 1)
+                        arrTopTen(f + 1) = temp
+                        swap = True
+                    End If
+                Next f
+                b = b - 1
+            Loop Until Not swap
+            For f = 1 To 10
+                lBoxTopTen.Items.Add(arrTopTen(f).initial + "    " + Str(arrTopTen(f).score))
+            Next
+
+            FileOpen(1, "F:\CP 2\net\Scrabble\TopTen.txt", OpenMode.Output)
+            For i = 1 To 10
+                PrintLine(1, arrTopTen(i).initial + " " + Str(arrTopTen(i).score))
+            Next
+            FileClose(1)
+        End If
+    End Sub
+End Class
